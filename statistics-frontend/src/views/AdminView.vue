@@ -32,6 +32,7 @@ onMounted(async () => {
       <tr v-for="user in users">
         <td>{{ user.id }}</td>
         <td>{{ user.fullName }}</td>
+        <!--        TODO: add role change functionality-->
         <td>{{ user.role }}</td>
       </tr>
       </tbody>
