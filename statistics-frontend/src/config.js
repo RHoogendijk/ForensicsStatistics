@@ -1,4 +1,4 @@
 export const CONFIG = {
-  BACKEND_URL: "haha ur not getting my ip",
+  BACKEND_URL: "http://localhost:8080",
   JWT_STORAGE_ITEM: "jwToken"
 };

@@ -60,6 +60,7 @@ export class FetchInterceptor {
       console.error("You do not have permission to access this resource.");
     } else if (response.status === 401) {
       console.error("Unauthorized - please log in");
+      this.sessionService.saveTokenIntoBrowserStorage(null)
     } else if (response.status >= 400) {
       console.error("A client error occurred. Please check your request." + response.toString());
     }

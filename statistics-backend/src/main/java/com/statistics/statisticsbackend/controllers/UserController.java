@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.logging.Logger;
 
 @RestController
@@ -31,7 +32,7 @@ public class UserController {
 
         if (jwtInfo.getRole() != Role.ADMIN ) {
             logger.warning("Unauthorized access attempt by user with role: " + jwtInfo.getRole());
-            throw new UnauthorizedException("Admin or teacher role is required to view users.");
+            throw new UnauthorizedException("Admin role is required to view users.");
         }
 
         try {
@@ -45,15 +46,25 @@ public class UserController {
     }
 
     @PostMapping("/{id}/role")
-    public ResponseEntity<User> addRole(@PathVariable Long id, @RequestBody Role role) {
+    public ResponseEntity<User> addRole(@PathVariable Long id, @RequestBody Role role, @RequestAttribute(name = JWToken.JWT_ATTRIBUTE_NAME) JWToken jwtInfo) {
         logger.info("POST /users/" + id + "/role: " + role);
-        User user = userService.findById(id);
-        if (user == null) {
-            logger.warning("Unauthorized access attempt: Missing user with id: " + id);
-            throw new UnauthorizedException("User not found.");
+        if (jwtInfo == null) {
+            logger.warning("Unauthorized access attempt: Missing JWT token.");
+            throw new UnauthorizedException("JWT token is required.");
         }
-        user.setRole(role);
-        userService.save(user);
-        return ResponseEntity.ok(user);
+
+        if (jwtInfo.getRole() != Role.ADMIN ) {
+            logger.warning("Unauthorized access attempt by user with role: " + jwtInfo.getRole());
+            throw new UnauthorizedException("Admin role is required to change user roles");
+        }
+        try{
+            User user = userService.findById(id);
+            user.setRole(role);
+            userService.save(user);
+            return ResponseEntity.ok(user);
+        } catch(NoSuchElementException e){
+            logger.warning("User not found: " + id);
+            return ResponseEntity.notFound().build();
+        }
     }
 }

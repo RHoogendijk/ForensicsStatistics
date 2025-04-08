@@ -1,10 +1,12 @@
 <script setup>
-import {onMounted, ref} from "vue";
+import {inject, onMounted, ref} from "vue";
 import {useUsers} from "@/composables/useUsers.js";
 import {useClasses} from "@/composables/useClasses.js"
 
-const {users, usersErr, usersLoading, fetchUsers} = useUsers()
+const {users, usersErr, usersLoading, fetchUsers, changeRole} = useUsers()
 const {classes, classesErr, classesLoading, fetchClasses, createClass, creatingClass} = useClasses()
+const sessionService = inject("sessionService");
+const userId = ref(sessionService.getId())
 
 const className = ref('')
 
@@ -32,8 +34,14 @@ onMounted(async () => {
       <tr v-for="user in users">
         <td>{{ user.id }}</td>
         <td>{{ user.fullName }}</td>
-        <!--        TODO: add role change functionality-->
-        <td>{{ user.role }}</td>
+        <td v-if="user.id != userId">
+          <select name="role" v-model="user.role" @change="changeRole(user.id, user.role)" >
+          <option value="ADMIN">Admin</option>
+          <option value="TEACHER">Teacher</option>
+          <option value="STUDENT">Student</option>
+        </select>
+        </td>
+        <td v-else>{{user.role}}</td>
       </tr>
       </tbody>
     </table>

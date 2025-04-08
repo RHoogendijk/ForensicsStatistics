@@ -31,5 +31,26 @@ export function useUsers() {
     }
   }
 
-  return { users, usersErr, usersLoading, fetchUsers };
+  const changeRole = async (userId, role) => {
+    usersLoading.value = true;
+    try{
+      const response = await fetch(`${CONFIG.BACKEND_URL}/users/${userId}/role`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(role)
+      });
+      if (!response.ok) {
+        throw new Error(response.status);
+      }
+      return await response.json();
+    } catch (error) {
+      usersErr.value = error;
+    } finally {
+      usersLoading.value = false;
+    }
+  }
+
+  return { users, usersErr, usersLoading, fetchUsers, changeRole };
 }

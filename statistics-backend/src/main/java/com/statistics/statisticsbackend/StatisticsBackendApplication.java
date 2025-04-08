@@ -1,5 +1,6 @@
 package com.statistics.statisticsbackend;
 
+import com.statistics.statisticsbackend.models.Role;
 import com.statistics.statisticsbackend.models.User;
 import com.statistics.statisticsbackend.security.SecureHasher;
 import com.statistics.statisticsbackend.services.UserService;
@@ -25,6 +26,7 @@ public class StatisticsBackendApplication {
             user.setEmail("admin@example.com");
             user.setSalt(salt);
             user.setPassword("Welkom1@");
+            user.setRole(Role.ADMIN);
 
             userService.save(user);
         };
