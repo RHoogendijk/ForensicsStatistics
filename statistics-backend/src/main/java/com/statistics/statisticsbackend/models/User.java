@@ -40,8 +40,9 @@ public class User {
     @JsonIgnore
     private SchoolClass schoolClass;
 
+    @Getter
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Session> sessions = new ArrayList<>();
+    private List<PlaySession> playSessions = new ArrayList<>();
 
     @Getter
     @Column(nullable = false)
@@ -53,7 +54,8 @@ public class User {
     @JsonIgnore
     private byte[] salt;
 
-    @Column(nullable = false)
+    @Getter
+    @Column(unique = true, nullable = false)
     private String uploadCode;
 
     public User(){
@@ -72,14 +74,15 @@ public class User {
         return this.password.equals(hashPassword(password));
     }
 
-    public void addSession(Session session){
-        this.sessions.add(session);
-        session.setUser(this);
+    @JsonIgnore
+    public void addSession(PlaySession playSession){
+        this.playSessions.add(playSession);
+        playSession.setUser(this);
     }
 
-    public void removeSession(Session session){
-        this.sessions.remove(session);
-        session.setUser(null);
+    public void removeSession(PlaySession playSession){
+        this.playSessions.remove(playSession);
+        playSession.setUser(null);
     }
 
     @PrePersist

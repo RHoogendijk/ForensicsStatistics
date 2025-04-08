@@ -2,8 +2,6 @@ package com.statistics.statisticsbackend.models;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -11,13 +9,14 @@ import java.util.List;
 
 @Data
 @Entity
-public class Session {
+public class PlaySession {
 
     @Id
     @GeneratedValue
     private Long id;
 
     @ManyToOne
+    @JoinColumn(name = "user_id")
     private User user;
 
     @ElementCollection

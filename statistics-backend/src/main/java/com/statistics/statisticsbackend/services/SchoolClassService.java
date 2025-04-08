@@ -47,6 +47,10 @@ public class SchoolClassService {
         return schoolClass;
     }
 
+    public boolean exists(String classId) {
+        return schoolClassRepository.existsById(classId);
+    }
+
     public void save(SchoolClass schoolClass) {
         logger.info("Saving class with id: {}", schoolClass.getId());
         schoolClassRepository.save(schoolClass);

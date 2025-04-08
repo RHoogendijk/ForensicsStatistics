@@ -7,6 +7,7 @@ import com.statistics.statisticsbackend.models.User;
 import com.statistics.statisticsbackend.services.SchoolClassService;
 import com.statistics.statisticsbackend.services.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,12 +36,15 @@ public class SchoolClassController {
         }
     }
 
-    //TODO: check for duplicates
     @PostMapping
     public ResponseEntity<SchoolClass> createClass(@RequestBody SchoolClassCreationDTO schoolClassCreationDTO){
-        SchoolClass schoolClass = new SchoolClass(schoolClassCreationDTO.getId(), new ArrayList<>());
-        schoolClassService.save(schoolClass);
-        return ResponseEntity.ok(schoolClass);
+        if(!schoolClassService.exists(schoolClassCreationDTO.getId())){
+            SchoolClass schoolClass = new SchoolClass(schoolClassCreationDTO.getId(), new ArrayList<>());
+            schoolClassService.save(schoolClass);
+            return ResponseEntity.ok(schoolClass);
+        } else {
+            return  ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
     }
 
     @PostMapping("/{id}/enroll/{studentId}")

@@ -33,6 +33,16 @@ public class UserService {
                 });
     }
 
+    public User findByUploadCode(String uploadCode){
+        logger.info("Fetching user with upload code: {}", uploadCode);
+        return userRepository.findUserByUploadCode(uploadCode).orElseThrow(
+                () -> {
+                    logger.error("User with upload code: {} not found!", uploadCode);
+                    return new NoSuchElementException("User with upload code: " + uploadCode + " not found!");
+                }
+        );
+    }
+
     public User findByEmail(String email){
         logger.info("Fetching user with email: {}", email);
         return userRepository.findUserByEmail(email).orElse(null);

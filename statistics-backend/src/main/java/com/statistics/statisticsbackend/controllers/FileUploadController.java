@@ -1,6 +1,9 @@
 package com.statistics.statisticsbackend.controllers;
 
 
+import com.statistics.statisticsbackend.models.PlaySession;
+import com.statistics.statisticsbackend.models.User;
+import com.statistics.statisticsbackend.services.PlaySessionService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,83 +25,89 @@ import java.util.stream.Collectors;
 public class FileUploadController {
 
     private static final String UPLOAD_DIR = "/app/uploads";
-    private static final Logger logger = Logger.getLogger(SchoolClassController.class.getName());
+    private static final Logger logger = Logger.getLogger(FileUploadController.class.getName());
+    private final PlaySessionService playSessionService;
 
-    //TODO: receive multiple images at once along with a upload code and create a session for the user
     @PostMapping("/upload")
-    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) {
-        logger.info("📩 Received upload request");
+    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("sessionId") Long sessionId, HttpServletRequest request) {
+        logger.info("Received upload request");
 
+        PlaySession currentSession = playSessionService.findById(sessionId);
+        if (currentSession == null) {
+            return new ResponseEntity<>("Session not found", HttpStatus.NOT_FOUND);
+        }
+        User user = currentSession.getUser();
+        if (user == null) {
+            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+        }
         if (file == null || file.isEmpty()) {
-            logger.warning("⚠️ Uploaded file is null or empty");
+            logger.warning(" Uploaded file is null or empty");
             return ResponseEntity.badRequest().body("No file provided or file is empty.");
         }
 
-        logger.info("📄 File name: " + file.getOriginalFilename());
-        logger.info("📏 File size: " + file.getSize() + " bytes");
-        logger.info("🧠 Content type: " + file.getContentType());
+        logger.info("File name: " + file.getOriginalFilename());
+        logger.info("File size: " + file.getSize() + " bytes");
+        logger.info("Content type: " + file.getContentType());
 
         try {
             // Ensure full absolute path and directory structure
-            File uploadDir = new File(UPLOAD_DIR);
-            if (!uploadDir.exists()) {
-                logger.info("📂 Creating upload directory: " + uploadDir.getAbsolutePath());
-                if (!uploadDir.mkdirs()) {
-                    logger.warning("❌ Failed to create upload directory!");
-                    return ResponseEntity.status(500).body("Failed to create upload directory.");
-                }
+            File baseUploadDir = new File(UPLOAD_DIR);
+
+            if (!baseUploadDir.exists() && !baseUploadDir.mkdirs()) {
+                logger.warning("Failed to create base upload directory: " + baseUploadDir.getAbsolutePath());
+                return ResponseEntity.status(500).body("Failed to create base upload directory.");
             }
 
-            // Create destination file path
-            File dest = new File(uploadDir, file.getOriginalFilename());
+            // Build the directory structure: UPLOAD_DIR/userId/sessionId
+            String userIdStr = user.getId().toString();
+            String sessionIdStr = currentSession.getId().toString();
+            File userSessionDir = new File(baseUploadDir, userIdStr + File.separator + sessionIdStr);
 
-            // Just in case, ensure parent directory of dest exists
-            File parent = dest.getParentFile();
-            if (!parent.exists()) {
-                logger.info("📁 Creating parent directories: " + parent.getAbsolutePath());
-                parent.mkdirs();
+            // Determine if the file is a JPG by checking the lower-case extension
+            String originalFileName = file.getOriginalFilename();
+            String lowerName = originalFileName.toLowerCase();
+            File destinationDir;
+            if (lowerName.endsWith(".jpg")) {
+                // Append "img" subdirectory for JPG files
+                destinationDir = new File(userSessionDir, "img");
+            } else {
+                destinationDir = userSessionDir;
             }
 
-            logger.info("💾 Saving file to: " + dest.getAbsolutePath());
+            // Ensure that the destination directory exists
+            if (!destinationDir.exists() && !destinationDir.mkdirs()) {
+                logger.warning("Failed to create destination directory: " + destinationDir.getAbsolutePath());
+                return ResponseEntity.status(500).body("Failed to create destination directory.");
+            }
 
+            // Create the destination file (using the original file name)
+            File dest = new File(destinationDir, originalFileName);
+            logger.info("Saving file to: " + dest.getAbsolutePath());
+
+            // Save the file to the destination path
             file.transferTo(dest);
 
-            logger.info("✅ File uploaded successfully");
-            return ResponseEntity.ok("File uploaded successfully: " + dest.getAbsolutePath());
+            // Construct the public URL for the uploaded file.
+            // Adjust the public path if you serve the images and files differently.
+            String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+            String fileUrl;
+            if (lowerName.endsWith(".jpg")) {
+                fileUrl = baseUrl + "/api/images/" + userIdStr + "/" + sessionIdStr + "/img/" + originalFileName;
+            } else {
+                fileUrl = baseUrl + "/api/files/" + userIdStr + "/" + sessionIdStr + "/" + originalFileName;
+            }
 
+            // Add the constructed file URL to the current session
+            currentSession.addFileUrl(fileUrl);
+
+            logger.info("File uploaded successfully");
+            return ResponseEntity.ok("File uploaded successfully: " + dest.getAbsolutePath());
         } catch (IOException e) {
-            logger.log(Level.SEVERE, "❌ Upload failed with IOException", e);
+            logger.log(Level.SEVERE, "Upload failed with IOException", e);
             return ResponseEntity.status(500).body("Upload failed: " + e.getMessage());
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "❌ Unexpected error during upload", e);
+            logger.log(Level.SEVERE, "Unexpected error during upload", e);
             return ResponseEntity.status(500).body("Unexpected error: " + e.getMessage());
         }
-    }
-
-    //TODO: only retrieve images belonging to one session, check for user authentication
-    @GetMapping("/images")
-    public ResponseEntity<List<String>> listAllImages(HttpServletRequest request) {
-        File uploadDir = new File(UPLOAD_DIR);
-        if (!uploadDir.exists() || !uploadDir.isDirectory()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(List.of());
-        }
-
-        File[] files = uploadDir.listFiles((dir, name) -> {
-            String lower = name.toLowerCase();
-            return lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png") || lower.endsWith(".gif");
-        });
-
-        if (files == null) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(List.of());
-        }
-
-        String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
-
-        List<String> imageUrls = Arrays.stream(files)
-                .map(File::getName)
-                .map(name -> baseUrl + "/api/images/" + name) // Ensure URL points to /api/images/
-                .collect(Collectors.toList());
-
-        return ResponseEntity.ok(imageUrls);
     }
 }

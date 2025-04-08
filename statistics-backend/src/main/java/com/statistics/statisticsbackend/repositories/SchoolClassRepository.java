@@ -7,5 +7,4 @@ import java.util.Optional;
 
 public interface SchoolClassRepository extends JpaRepository<SchoolClass, String> {
 
-   // Optional<SchoolClass> findById(String id);
 }

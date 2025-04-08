@@ -27,6 +27,7 @@ onMounted(async () => {
       <tr>
         <th>ID</th>
         <th>Name</th>
+        <th>Upload Code</th>
         <th>Role</th>
       </tr>
       </thead>
@@ -34,6 +35,7 @@ onMounted(async () => {
       <tr v-for="user in users">
         <td>{{ user.id }}</td>
         <td>{{ user.fullName }}</td>
+        <td>{{ user.uploadCode }}</td>
         <td v-if="user.id != userId">
           <select name="role" v-model="user.role" @change="changeRole(user.id, user.role)" >
           <option value="ADMIN">Admin</option>

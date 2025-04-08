@@ -29,6 +29,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
      */
     Optional<User> findUserByEmail(String email);
 
+    /**
+     * Searches for a user by upload code
+     *
+     * @param uploadCode The email address of a user
+     * @return The user to which the given email belongs, if it exists
+     */
+    Optional<User> findUserByUploadCode(String uploadCode);
+
     List<User> findAllByRoleAndSchoolClass_Id(Role role, String schoolClassId);
 
     /**
