@@ -100,6 +100,7 @@ public class FileUploadController {
 
             // Add the constructed file URL to the current session
             currentSession.addFileUrl(fileUrl);
+            playSessionService.save(currentSession);
 
             logger.info("File uploaded successfully");
             return ResponseEntity.ok("File uploaded successfully: " + dest.getAbsolutePath());

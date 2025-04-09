@@ -36,4 +36,7 @@ a{
   font-size: 14px;
   padding: 0 8px;
 }
+img{
+  width: 80%;
+}
 </style>
