@@ -19,7 +19,7 @@ public class APIConfig implements WebMvcConfigurer
     private int tokenDurationOfValidity;
 
     public Set<String> SECURED_PATHS =
-            Set.of("/userdata");
+            Set.of("/users");
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {

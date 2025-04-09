@@ -17,7 +17,7 @@ const goToClass = (id) => {
 </script>
 
 <template>
-  <h2>Classes</h2>
+  <h2>Groups</h2>
   <div v-if="classesLoading">Loading...</div>
   <div v-else-if="classesErr">Error: {{ usersErr.message }}</div>
   <table v-else>

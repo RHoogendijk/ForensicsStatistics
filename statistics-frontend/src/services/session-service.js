@@ -1,5 +1,5 @@
 import {jwtDecode} from "jwt-decode";
-import{reactive} from "vue";
+import {computed, reactive} from "vue";
 import {CONFIG} from "@/config.js";
 
 export class SessionService {
@@ -51,6 +51,7 @@ export class SessionService {
       this.saveTokenIntoBrowserStorage(
         response.headers.get('Authorization'),
       );
+      window.location.reload();
       return true;
     }
     throw new Error("Invalid email or password")
@@ -87,12 +88,14 @@ export class SessionService {
   isAuthenticated() {
     return !!this.state.token;
   }
+
   isAdmin(){
     try{
       let decodedToken = jwtDecode(this.state.token);
       return decodedToken.role === "ADMIN";
     } catch(err){
       console.error("error decoding token")
+      this.logout();
       return false;
     }
   }
@@ -102,6 +105,7 @@ export class SessionService {
       return decodedToken.role === "STUDENT";
     } catch(err){
       console.error("error decoding token")
+      this.logout();
       return false;
     }
   }
@@ -111,6 +115,7 @@ export class SessionService {
       return decodedToken.role === "TEACHER";
     } catch(err){
       console.error("error decoding token")
+      this.logout();
       return false;
     }
   }
@@ -120,6 +125,7 @@ export class SessionService {
       return decodedToken.sub;
     } catch (err) {
       console.error("error decoding token")
+      this.logout();
       return "placeholder username"
     }
   }
@@ -132,6 +138,7 @@ export class SessionService {
       return decodedToken.jti;
     } catch (err) {
       console.error("error decoding token")
+      this.logout();
       return null
     }
   }

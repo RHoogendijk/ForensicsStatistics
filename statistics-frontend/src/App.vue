@@ -21,11 +21,17 @@ const routerGuard = (to, from) => {
       console.error(`User not authorized to visit ${to}`)
       return {name: 'Home', query: {targetRoute: to.name}};
     }
-  } else if (to.name === 'My Profile'){
+  } else if (to.name === 'My Profile' || to.name === 'My Sessions' || to.name === 'SessionDetail'){
     console.log(theSessionService.isAuthenticated());
     if (!theSessionService.isAuthenticated()){
       console.log("test")
       return {name: 'Home', query: {targetRoute: to.name}};
+    }
+  }  else if (to.name === 'Login' || to.name === 'Register'){
+    console.log(theSessionService.isAuthenticated());
+    if (theSessionService.isAuthenticated()){
+
+      return {name: 'My Profile'};
     }
   }
 }

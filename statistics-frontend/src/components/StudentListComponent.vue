@@ -9,11 +9,14 @@ const route = useRoute()
 const router = useRouter()
 const classId = route.params.id
 const goBack = () => {
-  router.back() // or router.go(-1)
+  router.back()
 }
 onMounted(async () => {
   await fetchStudentsForClass(classId);
 });
+const goToStudent= (id) => {
+  router.push({ name: "Student Sessions", params: { id: id } });
+};
 </script>
 
 <template>
@@ -32,13 +35,13 @@ onMounted(async () => {
 
     <tr
       v-for="student in students"
-
+      @click="goToStudent(student.id)"
     >
       <td>{{ student.name }} </td>
       <td class="end">32</td>
     </tr>
     <tr v-if="students.length === 0">
-      <td>This class is empty...</td>
+      <td>This group is empty...</td>
     </tr>
     </tbody>
   </table>
@@ -50,5 +53,13 @@ a{
   color: blue;
   font-size: 14px;
   padding: 0 8px;
+}
+
+tr{
+  transition: background-color 0.4s;
+}
+tr:hover{
+  background-color: #F6F7F8;
+  cursor: pointer;
 }
 </style>

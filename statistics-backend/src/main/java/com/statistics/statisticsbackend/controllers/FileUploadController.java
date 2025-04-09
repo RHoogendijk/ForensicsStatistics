@@ -28,6 +28,7 @@ public class FileUploadController {
     private static final Logger logger = Logger.getLogger(FileUploadController.class.getName());
     private final PlaySessionService playSessionService;
 
+    //TODO: move logic inside service
     @PostMapping("/upload")
     public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("sessionId") Long sessionId, HttpServletRequest request) {
         logger.info("Received upload request");

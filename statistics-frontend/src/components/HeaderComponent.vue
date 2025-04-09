@@ -27,8 +27,8 @@ const logout = async () => {
         <div class="left">
           <RouterLink to="/">Home</RouterLink>
           <RouterLink to="/myprofile" v-if="isAuthenticated">Profile</RouterLink>
-          <RouterLink to="/sessions" v-if="isStudent">My Sessions</RouterLink>
-          <RouterLink to="/classes" v-if="isTeacher">Classes</RouterLink>
+          <RouterLink to="/sessions" v-if="!isAdmin && isAuthenticated">My Sessions</RouterLink>
+          <RouterLink to="/classes" v-if="isTeacher">Groups</RouterLink>
         </div>
         <div class="right">
           <RouterLink to="/login" v-if="!isAuthenticated">Login</RouterLink>

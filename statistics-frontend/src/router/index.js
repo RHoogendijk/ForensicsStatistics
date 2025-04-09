@@ -53,8 +53,13 @@ const  router = createRouter({
       component: MySessionsView
     },
     {
+      path: "/sessions/student/:id",
+      name: "Student Sessions",
+      component: MySessionsView
+    },
+    {
       path: "/sessions/:id",
-      name: "Session Details",
+      name: "SessionDetail",
       component: SessionDetailView,
       props: true,
     }

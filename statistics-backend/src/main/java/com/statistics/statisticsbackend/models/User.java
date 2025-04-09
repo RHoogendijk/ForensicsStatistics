@@ -42,6 +42,7 @@ public class User {
 
     @Getter
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<PlaySession> playSessions = new ArrayList<>();
 
     @Getter
@@ -74,7 +75,7 @@ public class User {
         return this.password.equals(hashPassword(password));
     }
 
-    @JsonIgnore
+
     public void addSession(PlaySession playSession){
         this.playSessions.add(playSession);
         playSession.setUser(this);

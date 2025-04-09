@@ -1,5 +1,6 @@
 import fetchIntercept from 'fetch-intercept';
 import { CONFIG } from "@/config.js";
+import router from "@/router/index.js";
 
 export class FetchInterceptor {
   static singletonInstance;

@@ -17,7 +17,6 @@ const submit = async () => {
   emailError.value = null;
   try {
     await sessionService.asyncLogIn(loginEmail.value, loginPassword.value);
-    await router.push("/myprofile");
   } catch (error) {
     if (error.message.includes('Invalid email or password')) {
       emailError.value = 'E-mailadres of wachtwoord is onjuist.';
