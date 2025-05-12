@@ -10,5 +10,4 @@ import java.util.List;
 public class PlaySessionListDTO {
     private String username;
     private List<PlaySessionDTO> playSessions;
-
 }

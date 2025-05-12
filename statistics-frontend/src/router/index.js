@@ -9,6 +9,7 @@ import MySessionsView from "@/views/MySessionsView.vue";
 import SessionDetailView from "@/views/SessionDetailView.vue";
 import ClassListComponent from "@/components/ClassListComponent.vue";
 import StudentListComponent from "@/components/StudentListComponent.vue";
+import ReplayView from "@/views/ReplayView.vue";
 
 const  router = createRouter({
   history: createWebHistory(),
@@ -62,6 +63,11 @@ const  router = createRouter({
       name: "SessionDetail",
       component: SessionDetailView,
       props: true,
+    },
+    {
+      path: "/replay",
+      name: "Replay",
+      component: ReplayView,
     }
   ]
 })

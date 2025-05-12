@@ -45,7 +45,6 @@ public class AuthenticationService {
     public void register(RegisterRequest request) {
         logger.info("Starting registration for username: {}", request.getFullName());
 
-
         if (!isValidEmail(request.getEmail())) {
             logger.error("Invalid email format: {}", request.getEmail());
             throw new IllegalArgumentException("Invalid email format");

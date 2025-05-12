@@ -12,6 +12,13 @@ import java.util.Optional;
 @Repository
 @Transactional
 public interface UserRepository extends JpaRepository<User, Long> {
+    /**
+     * Searches for a user by email
+     *
+     * @param email The email address of a user
+     * @return The user to which the given email belongs, if it exists
+     */
+    Optional<User> findUserByEmail(String email);
 
     /**
      * Searches for a user by username
@@ -21,13 +28,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
      */
     Optional<User> findUserByFullName(String fullName);
 
-    /**
-     * Searches for a user by email
-     *
-     * @param email The email address of a user
-     * @return The user to which the given email belongs, if it exists
-     */
-    Optional<User> findUserByEmail(String email);
 
     /**
      * Searches for a user by upload code
