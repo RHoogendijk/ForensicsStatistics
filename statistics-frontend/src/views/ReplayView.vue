@@ -8,7 +8,8 @@ import {
 } from 'vue'
 
 const time = ref(0)
-const max = ref(100)
+const max = computed(() => data.duration)
+const positions = computed(() => data.positions)
 const isPlaying = ref(false)
 
 let lastFrame = performance.now()
@@ -64,13 +65,34 @@ function update(now) {
   requestAnimationFrame(update)
 }
 
+//canvas functions
+function drawFrames() {}
+
+function drawBackground() {}
+
+function drawPlayer() {}
+
+const cRef = ref(null)
+let ctx;
+
 // Lifecycle hooks
 onMounted(() => {
+  //playbar
   lastFrame = performance.now()
   requestAnimationFrame(update)
 
   window.addEventListener('mouseup', onMouseUp)
   window.addEventListener('mousemove', onMouseMove)
+
+  //canvas
+  const c = cRef.value
+  ctx = c.getContext('2d')
+  c.width = 854
+  c.height = 480
+  ctx.beginPath()
+  ctx.rect(20, 20, 150, 100)
+  ctx.stroke()
+  console.log(positions.value)
 })
 
 onUnmounted(() => {
@@ -123,11 +145,45 @@ watchEffect(() => {
   const percent = time.value / max.value
   showPointer.value = percent * rect.width
 })
+
+const data = {
+  duration: 5.0,
+  positions: [
+    { time: 0.0, x: 0.0, y: 0.0, angle: 0.0, floor: 0 },
+    { time: 0.5, x: 10.0, y: 10.0, angle: 0.0, floor: 0 },
+    { time: 1.0, x: 20.0, y: 20.0, angle: 0.0, floor: 0 },
+    { time: 1.5, x: 30.0, y: 30.0, angle: 0.0, floor: 0 },
+    { time: 2.0, x: 40.0, y: 40.0, angle: 0.0, floor: 0 },
+    { time: 2.5, x: 50.0, y: 50.0, angle: 0.0, floor: 0 },
+    { time: 3.0, x: 60.0, y: 60.0, angle: 0.0, floor: 0 },
+    { time: 3.5, x: 70.0, y: 70.0, angle: 0.0, floor: 0 },
+    { time: 4.0, x: 80.0, y: 80.0, angle: 0.0, floor: 0 },
+    { time: 4.5, x: 90.0, y: 90.0, angle: 0.0, floor: 0 },
+    { time: 5.0, x: 100.0, y: 100.0, angle: 0.0, floor: 0 },
+  ],
+  logs: [
+    { time: 1.2, message: "User picked up camera" },
+    { time: 2.0, message: "User took a picture of Spectrometer" },
+    { time: 3.2, message: "User took a picture of IBC Tank" },
+    { time: 4.2, message: "User scanned substance containing Piperonylketon, water" }
+  ],
+  events: [
+    {
+      time: 2.0,
+      type: "taken_photo",
+    },
+    {
+      time: 3.2,
+      type: "taken_photo",
+    }
+  ]
+};
 </script>
 
 <template>
   <div class="body-container">
     <h2>Replay</h2>
+    <canvas ref="cRef"></canvas>
     <div class="slider-container">
       <label for="time">Time: {{ formattedTime }}</label>
       <div class="slider-wrapper" >
@@ -160,6 +216,12 @@ watchEffect(() => {
 </template>
 
 <style scoped>
+canvas{
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  border: 1px solid #ccc
+}
+
 .slider-container{
   width: 75%;
 }
