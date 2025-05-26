@@ -19,6 +19,9 @@ const showPointer = ref(false)
 const isDragging = ref(false)
 const mouseX = ref(0)
 
+const bgImage = new Image()
+bgImage.src = new URL('@/assets/img/replay/bg/stable-bg.png', import.meta.url).href
+
 // Event handlers
 function onMouseDown() {
   isDragging.value = true
@@ -66,11 +69,70 @@ function update(now) {
 }
 
 //canvas functions
-function drawFrames() {}
+function drawFrame() {
+  ctx.clearRect(0, 0, 854, 480)
+  drawBackground()
+  drawPlayer()
+}
 
-function drawBackground() {}
+function drawBackground() {
+  if (!bgImage.complete) return
+  ctx.drawImage(bgImage, 0, 0, 854, 480)
+}
 
-function drawPlayer() {}
+function drawPlayer() {
+  const pos = getPlayerPosAtCurrentTime(time.value)
+  if (!ctx || !pos) return
+
+// Example: Draw a circle at the position
+  ctx.fillStyle = '#FDBA69'
+  ctx.beginPath()
+  ctx.arc(pos.x, pos.y, 8, 0, Math.PI * 2)
+  ctx.fill()
+}
+
+
+function getPlayerPosAtCurrentTime(currentTime) {
+  const pos = positions.value
+  if (!pos || pos.length === 0) return null
+
+  // Clamp edges
+  if (currentTime <= pos[0].time) return scaleToCanvas(pos[0])
+  if (currentTime >= pos[pos.length - 1].time) return scaleToCanvas(pos[pos.length - 1])
+
+  // Find surrounding positions
+  for (let i = 0; i < pos.length - 1; i++) {
+    const p1 = pos[i]
+    const p2 = pos[i + 1]
+
+    if (currentTime >= p1.time && currentTime <= p2.time) {
+      const t = (currentTime - p1.time) / (p2.time - p1.time)
+
+      const interpolated = {
+        x: p1.x + (p2.x - p1.x) * t,
+        y: p1.y + (p2.y - p1.y) * t,
+        angle: p1.angle + (p2.angle - p1.angle) * t,
+        floor: p1.floor // optional interpolation if needed
+      }
+
+      return scaleToCanvas(interpolated)
+    }
+  }
+
+  return null
+}
+
+function scaleToCanvas(position) {
+  const canvasWidth = 854
+  const canvasHeight = 480
+
+  return {
+    x: position.x / 100 * canvasWidth,  // assuming 100 is max x
+    y: position.y / 100 * canvasHeight, // assuming 100 is max y
+    angle: position.angle,
+    floor: position.floor
+  }
+}
 
 const cRef = ref(null)
 let ctx;
@@ -120,7 +182,7 @@ const pointerStyle = computed(() => {
   const slider = sliderRef.value
   const rect = slider.getBoundingClientRect()
   const x = mouseX.value
-  return { left: `${x}px` }
+  return {left: `${x}px`}
 })
 
 const hoveredTime = computed(() => {
@@ -139,33 +201,37 @@ const formattedPointerTime = computed(() => {
 
 // Reposition pointer on time update
 watchEffect(() => {
-  if (!sliderRef.value) return
+  if (!sliderRef.value || !ctx) return
+  //update playbar ui
   const slider = sliderRef.value
   const rect = slider.getBoundingClientRect()
   const percent = time.value / max.value
   showPointer.value = percent * rect.width
+
+  //update canvas
+  drawFrame()
 })
 
 const data = {
   duration: 5.0,
   positions: [
-    { time: 0.0, x: 0.0, y: 0.0, angle: 0.0, floor: 0 },
-    { time: 0.5, x: 10.0, y: 10.0, angle: 0.0, floor: 0 },
-    { time: 1.0, x: 20.0, y: 20.0, angle: 0.0, floor: 0 },
-    { time: 1.5, x: 30.0, y: 30.0, angle: 0.0, floor: 0 },
-    { time: 2.0, x: 40.0, y: 40.0, angle: 0.0, floor: 0 },
-    { time: 2.5, x: 50.0, y: 50.0, angle: 0.0, floor: 0 },
-    { time: 3.0, x: 60.0, y: 60.0, angle: 0.0, floor: 0 },
-    { time: 3.5, x: 70.0, y: 70.0, angle: 0.0, floor: 0 },
-    { time: 4.0, x: 80.0, y: 80.0, angle: 0.0, floor: 0 },
-    { time: 4.5, x: 90.0, y: 90.0, angle: 0.0, floor: 0 },
-    { time: 5.0, x: 100.0, y: 100.0, angle: 0.0, floor: 0 },
+    {time: 0.0, x: 0.0, y: 0.0, angle: 0.0, floor: 0},
+    {time: 0.5, x: 10.0, y: 5.0, angle: 0.0, floor: 0},
+    {time: 1.0, x: 25.0, y: 15.0, angle: 0.0, floor: 0},
+    {time: 1.5, x: 35.0, y: 40.0, angle: 0.0, floor: 0},
+    {time: 2.0, x: 45.0, y: 25.0, angle: 0.0, floor: 0},
+    {time: 2.5, x: 60.0, y: 35.0, angle: 0.0, floor: 0},
+    {time: 3.0, x: 65.0, y: 60.0, angle: 0.0, floor: 0},
+    {time: 3.5, x: 75.0, y: 55.0, angle: 0.0, floor: 0},
+    {time: 4.0, x: 85.0, y: 75.0, angle: 0.0, floor: 0},
+    {time: 4.5, x: 90.0, y: 85.0, angle: 0.0, floor: 0},
+    {time: 5.0, x: 100.0, y: 100.0, angle: 0.0, floor: 0},
   ],
   logs: [
-    { time: 1.2, message: "User picked up camera" },
-    { time: 2.0, message: "User took a picture of Spectrometer" },
-    { time: 3.2, message: "User took a picture of IBC Tank" },
-    { time: 4.2, message: "User scanned substance containing Piperonylketon, water" }
+    {time: 1.2, message: "User picked up camera"},
+    {time: 2.0, message: "User took a picture of Spectrometer"},
+    {time: 3.2, message: "User took a picture of IBC Tank"},
+    {time: 4.2, message: "User scanned substance containing Piperonylketon, water"}
   ],
   events: [
     {
@@ -186,20 +252,20 @@ const data = {
     <canvas ref="cRef"></canvas>
     <div class="slider-container">
       <label for="time">Time: {{ formattedTime }}</label>
-      <div class="slider-wrapper" >
-      <input
-        ref="sliderRef"
-        type="range"
-        id="time"
-        min="0"
-        step="0.1"
-        :max="max"
-        v-model.number="time"
-        :style="sliderStyle"
-        @mousedown="onMouseDown"
-        @mouseenter="onMouseEnter"
-        @mouseleave="onMouseLeave"
-      />
+      <div class="slider-wrapper">
+        <input
+          ref="sliderRef"
+          type="range"
+          id="time"
+          min="0"
+          step="0.1"
+          :max="max"
+          v-model.number="time"
+          :style="sliderStyle"
+          @mousedown="onMouseDown"
+          @mouseenter="onMouseEnter"
+          @mouseleave="onMouseLeave"
+        />
         <transition name="pointer-fade">
           <div
             v-if="showPointer"
@@ -209,22 +275,23 @@ const data = {
             {{ formattedPointerTime }}
           </div>
         </transition>
-        </div>
+      </div>
       <button @click="togglePlay">{{ isPlaying ? 'Pause' : 'Play' }}</button>
     </div>
   </div>
 </template>
 
 <style scoped>
-canvas{
+canvas {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 4px;
   border: 1px solid #ccc
 }
 
-.slider-container{
+.slider-container {
   width: 75%;
 }
+
 input[type="range"] {
   -webkit-appearance: none;
   width: 100%;
@@ -291,10 +358,12 @@ input[type="range"]::-moz-range-track {
 .pointer-fade-leave-active {
   transition: opacity 0.2s ease;
 }
+
 .pointer-fade-enter-from,
 .pointer-fade-leave-to {
   opacity: 0;
 }
+
 .pointer-fade-enter-to,
 .pointer-fade-leave-from {
   opacity: 1;
