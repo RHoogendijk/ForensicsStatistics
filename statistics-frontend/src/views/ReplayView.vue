@@ -7,43 +7,12 @@ import {
   watchEffect
 } from 'vue'
 
-const data = {
-  duration: 5.0,
-  positions: [
-    {time: 0.0, x: 0.0, y: 0.0, angle: 0.0, floor: 0},
-    {time: 0.5, x: 10.0, y: 5.0, angle: 0.0, floor: 0},
-    {time: 1.0, x: 25.0, y: 15.0, angle: 0.0, floor: 0},
-    {time: 1.5, x: 35.0, y: 40.0, angle: 0.0, floor: 0},
-    {time: 2.0, x: 45.0, y: 25.0, angle: 0.0, floor: 0},
-    {time: 2.5, x: 60.0, y: 35.0, angle: 0.0, floor: 0},
-    {time: 3.0, x: 65.0, y: 60.0, angle: 0.0, floor: 0},
-    {time: 3.5, x: 75.0, y: 55.0, angle: 0.0, floor: 0},
-    {time: 4.0, x: 85.0, y: 75.0, angle: 0.0, floor: 0},
-    {time: 4.5, x: 90.0, y: 85.0, angle: 0.0, floor: 0},
-    {time: 5.0, x: 100.0, y: 100.0, angle: 0.0, floor: 0},
-  ],
-  logs: [
-    {time: 1.2, message: "User picked up camera"},
-    {time: 2.0, message: "User took a picture of Spectrometer"},
-    {time: 3.2, message: "User took a picture of IBC Tank"},
-    {time: 4.2, message: "User scanned substance containing Piperonylketon, water"}
-  ],
-  events: [
-    {
-      time: 2.0,
-      type: "taken_photo",
-    },
-    {
-      time: 3.2,
-      type: "taken_photo",
-    }
-  ]
-};
+const data = ref(null)
 
 const time = ref(0)
-const max = computed(() => data.duration)
-const positions = computed(() => data.positions)
-const logs = computed(() => data.logs)
+const positions = computed(() => data.value?.positions || [])
+const logs = computed(() => data.value?.logs || [])
+const max = computed(() => data.value?.duration || 0)
 const visibleLogs = computed(() => {
   return logs.value.filter(log => log.time < time.value)
 })
@@ -107,6 +76,7 @@ function update(now) {
 
 //canvas functions
 function drawFrame() {
+  if (!data.value || positions.value.length === 0) return // ✅ skip if no data
   ctx.clearRect(0, 0, 854, 480)
   drawBackground()
   drawPlayer()
@@ -125,6 +95,11 @@ function drawPlayer() {
   ctx.fillStyle = '#FDBA69'
   ctx.beginPath()
   ctx.arc(pos.x, pos.y, 8, 0, Math.PI * 2)
+  ctx.fill()
+
+  ctx.fillStyle = '#0053ff'
+  ctx.beginPath()
+  ctx.arc(pos.x, pos.y, 8, (pos.angle -60)* (Math.PI / 180), (pos.angle + 60) * (Math.PI / 180))
   ctx.fill()
 }
 
@@ -175,23 +150,27 @@ const cRef = ref(null)
 let ctx;
 
 // Lifecycle hooks
-onMounted(() => {
-  //playbar
-  lastFrame = performance.now()
-  requestAnimationFrame(update)
+onMounted(async () => {
+  const response = await fetch('src/assets/json/simulation_data_20min.json')
+  data.value = await response.json()
 
-  window.addEventListener('mouseup', onMouseUp)
-  window.addEventListener('mousemove', onMouseMove)
+  await nextTick() // wait for DOM refs to be ready
 
-  //canvas
+  // Setup canvas
   const c = cRef.value
   ctx = c.getContext('2d')
   c.width = 854
   c.height = 480
-  ctx.beginPath()
-  ctx.rect(20, 20, 150, 100)
-  ctx.stroke()
-  console.log(positions.value)
+
+  drawFrame() // ✅ draw at least once when data is ready
+
+  // Start animation
+  lastFrame = performance.now()
+  requestAnimationFrame(update)
+
+  // Mouse events
+  window.addEventListener('mouseup', onMouseUp)
+  window.addEventListener('mousemove', onMouseMove)
 })
 
 onUnmounted(() => {
@@ -206,6 +185,13 @@ const formattedTime = computed(() => {
   const seconds = totalSeconds % 60
   return `${minutes}:${seconds.toString().padStart(2, '0')}`
 })
+
+function formatTime(time) {
+  let totalSeconds = Math.round(time)
+  const minutes = Math.floor(time / 60)
+  const seconds = totalSeconds % 60
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`
+}
 
 const sliderStyle = computed(() => {
   const percentage = (time.value / max.value) * 99
@@ -237,15 +223,14 @@ const formattedPointerTime = computed(() => {
 })
 
 // Reposition pointer on time update
-watchEffect(() => {
+watch(time, () => {
   if (!sliderRef.value || !ctx) return
-  //update playbar ui
+
   const slider = sliderRef.value
   const rect = slider.getBoundingClientRect()
   const percent = time.value / max.value
   showPointer.value = percent * rect.width
 
-  //update canvas
   drawFrame()
 })
 
@@ -295,7 +280,7 @@ watch(visibleLogs, () => {
     <div class="logs-container">
       <h3>Logs</h3>
       <div class="scrollable" ref="logContainer">
-        <p v-for="log in visibleLogs" :key="log.time">{{ log.time }}s | {{ log.message }}</p>
+        <p v-for="log in visibleLogs" :key="log.time">{{ formatTime(log.time) }} | {{ log.message }}</p>
       </div>
     </div>
   </div>
