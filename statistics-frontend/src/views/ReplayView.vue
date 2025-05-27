@@ -1,15 +1,52 @@
 <script setup>
 import {
-  computed,
+  computed, nextTick,
   onMounted,
   onUnmounted,
-  ref,
+  ref, watch,
   watchEffect
 } from 'vue'
+
+const data = {
+  duration: 5.0,
+  positions: [
+    {time: 0.0, x: 0.0, y: 0.0, angle: 0.0, floor: 0},
+    {time: 0.5, x: 10.0, y: 5.0, angle: 0.0, floor: 0},
+    {time: 1.0, x: 25.0, y: 15.0, angle: 0.0, floor: 0},
+    {time: 1.5, x: 35.0, y: 40.0, angle: 0.0, floor: 0},
+    {time: 2.0, x: 45.0, y: 25.0, angle: 0.0, floor: 0},
+    {time: 2.5, x: 60.0, y: 35.0, angle: 0.0, floor: 0},
+    {time: 3.0, x: 65.0, y: 60.0, angle: 0.0, floor: 0},
+    {time: 3.5, x: 75.0, y: 55.0, angle: 0.0, floor: 0},
+    {time: 4.0, x: 85.0, y: 75.0, angle: 0.0, floor: 0},
+    {time: 4.5, x: 90.0, y: 85.0, angle: 0.0, floor: 0},
+    {time: 5.0, x: 100.0, y: 100.0, angle: 0.0, floor: 0},
+  ],
+  logs: [
+    {time: 1.2, message: "User picked up camera"},
+    {time: 2.0, message: "User took a picture of Spectrometer"},
+    {time: 3.2, message: "User took a picture of IBC Tank"},
+    {time: 4.2, message: "User scanned substance containing Piperonylketon, water"}
+  ],
+  events: [
+    {
+      time: 2.0,
+      type: "taken_photo",
+    },
+    {
+      time: 3.2,
+      type: "taken_photo",
+    }
+  ]
+};
 
 const time = ref(0)
 const max = computed(() => data.duration)
 const positions = computed(() => data.positions)
+const logs = computed(() => data.logs)
+const visibleLogs = computed(() => {
+  return logs.value.filter(log => log.time < time.value)
+})
 const isPlaying = ref(false)
 
 let lastFrame = performance.now()
@@ -84,7 +121,7 @@ function drawPlayer() {
   const pos = getPlayerPosAtCurrentTime(time.value)
   if (!ctx || !pos) return
 
-// Example: Draw a circle at the position
+//Draw a circle at the player position
   ctx.fillStyle = '#FDBA69'
   ctx.beginPath()
   ctx.arc(pos.x, pos.y, 8, 0, Math.PI * 2)
@@ -112,7 +149,7 @@ function getPlayerPosAtCurrentTime(currentTime) {
         x: p1.x + (p2.x - p1.x) * t,
         y: p1.y + (p2.y - p1.y) * t,
         angle: p1.angle + (p2.angle - p1.angle) * t,
-        floor: p1.floor // optional interpolation if needed
+        floor: p1.floor
       }
 
       return scaleToCanvas(interpolated)
@@ -212,38 +249,15 @@ watchEffect(() => {
   drawFrame()
 })
 
-const data = {
-  duration: 5.0,
-  positions: [
-    {time: 0.0, x: 0.0, y: 0.0, angle: 0.0, floor: 0},
-    {time: 0.5, x: 10.0, y: 5.0, angle: 0.0, floor: 0},
-    {time: 1.0, x: 25.0, y: 15.0, angle: 0.0, floor: 0},
-    {time: 1.5, x: 35.0, y: 40.0, angle: 0.0, floor: 0},
-    {time: 2.0, x: 45.0, y: 25.0, angle: 0.0, floor: 0},
-    {time: 2.5, x: 60.0, y: 35.0, angle: 0.0, floor: 0},
-    {time: 3.0, x: 65.0, y: 60.0, angle: 0.0, floor: 0},
-    {time: 3.5, x: 75.0, y: 55.0, angle: 0.0, floor: 0},
-    {time: 4.0, x: 85.0, y: 75.0, angle: 0.0, floor: 0},
-    {time: 4.5, x: 90.0, y: 85.0, angle: 0.0, floor: 0},
-    {time: 5.0, x: 100.0, y: 100.0, angle: 0.0, floor: 0},
-  ],
-  logs: [
-    {time: 1.2, message: "User picked up camera"},
-    {time: 2.0, message: "User took a picture of Spectrometer"},
-    {time: 3.2, message: "User took a picture of IBC Tank"},
-    {time: 4.2, message: "User scanned substance containing Piperonylketon, water"}
-  ],
-  events: [
-    {
-      time: 2.0,
-      type: "taken_photo",
-    },
-    {
-      time: 3.2,
-      type: "taken_photo",
+const logContainer = ref(null)
+
+watch(visibleLogs, () => {
+  nextTick(() => {
+    if (logContainer.value) {
+      logContainer.value.scrollTop = logContainer.value.scrollHeight
     }
-  ]
-};
+  })
+})
 </script>
 
 <template>
@@ -278,6 +292,12 @@ const data = {
       </div>
       <button @click="togglePlay">{{ isPlaying ? 'Pause' : 'Play' }}</button>
     </div>
+    <div class="logs-container">
+      <h3>Logs</h3>
+      <div class="scrollable" ref="logContainer">
+        <p v-for="log in visibleLogs" :key="log.time">{{ log.time }}s | {{ log.message }}</p>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -290,6 +310,17 @@ canvas {
 
 .slider-container {
   width: 75%;
+}
+.scrollable {
+  scroll-behavior: smooth;
+  overflow-y: scroll;
+  height: 40px;
+}
+.logs-container {
+  width: 75%;
+  padding: 8px;
+  border-radius: 8px;
+  background-color: #cccccc;
 }
 
 input[type="range"] {
