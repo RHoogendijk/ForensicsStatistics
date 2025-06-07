@@ -22,6 +22,12 @@ public class PlaySession {
     @ElementCollection
     private List<String> fileUrls = new ArrayList<>();
 
+    private String basementBackgroundURL;
+
+    private String outsideBackgroundURL;
+
+    private String replayJsonURL;
+
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdTime;
 

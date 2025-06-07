@@ -2,6 +2,7 @@ package com.statistics.statisticsbackend.controllers;
 
 import com.statistics.statisticsbackend.DTOs.PlaySessionCreatedDTO;
 import com.statistics.statisticsbackend.DTOs.PlaySessionDTO;
+import com.statistics.statisticsbackend.DTOs.SessionContentDTO;
 import com.statistics.statisticsbackend.exceptions.UnauthorizedException;
 import com.statistics.statisticsbackend.models.PlaySession;
 import com.statistics.statisticsbackend.models.Role;
@@ -41,7 +42,7 @@ public class PlaySessionController {
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<List<String>> getSession(@PathVariable Long id, @RequestAttribute(name = JWToken.JWT_ATTRIBUTE_NAME) JWToken jwtInfo) {
+    public ResponseEntity<SessionContentDTO> getSession(@PathVariable Long id, @RequestAttribute(name = JWToken.JWT_ATTRIBUTE_NAME) JWToken jwtInfo) {
         if (jwtInfo == null) {
             logger.warning("Unauthorized access attempt: Missing JWT token.");
             throw new UnauthorizedException("JWT token is required.");
@@ -57,6 +58,9 @@ public class PlaySessionController {
         }
 
         List<String> fileURLs = session.getFileUrls();
-        return ResponseEntity.ok(fileURLs);
+        String outsideBackgroundURL = session.getOutsideBackgroundURL();
+        String basementBackgroundURL = session.getBasementBackgroundURL();
+        String jsonURL = session.getReplayJsonURL();
+        return ResponseEntity.ok(new SessionContentDTO(outsideBackgroundURL, basementBackgroundURL, jsonURL, fileURLs));
     }
 }

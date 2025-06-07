@@ -68,11 +68,13 @@ public class FileUploadController {
             String originalFileName = file.getOriginalFilename();
             String lowerName = originalFileName.toLowerCase();
             File destinationDir;
-            if (lowerName.endsWith(".jpg")) {
+            if (lowerName.endsWith(".jpg") && lowerName.startsWith("photo_")) {
                 // Append "img" subdirectory for JPG files
                 destinationDir = new File(userSessionDir, "img");
+            } else if (lowerName.startsWith("replay_")) {
+                destinationDir = new File(userSessionDir, "replay");
             } else {
-                destinationDir = userSessionDir;
+                return ResponseEntity.status(406).body("not a valid file");
             }
 
             // Ensure that the destination directory exists
@@ -89,21 +91,32 @@ public class FileUploadController {
             file.transferTo(dest);
 
             // Construct the public URL for the uploaded file.
-            // Adjust the public path if you serve the images and files differently.
             String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
             String fileUrl;
-            if (lowerName.endsWith(".jpg")) {
+            if (lowerName.endsWith(".jpg") && lowerName.startsWith("photo_")) {
+                //add photo to current session
                 fileUrl = baseUrl + "/api/images/" + userIdStr + "/" + sessionIdStr + "/img/" + originalFileName;
-            } else {
-                fileUrl = baseUrl + "/api/files/" + userIdStr + "/" + sessionIdStr + "/" + originalFileName;
+                logger.info("Generated file URL: " + fileUrl);
+                currentSession.addFileUrl(fileUrl);
+            } else if (lowerName.startsWith("replay_")){
+                fileUrl = baseUrl + "/api/replay/" + userIdStr + "/" + sessionIdStr + "/" + originalFileName;
+                logger.info("Generated file URL: " + fileUrl);
+                if (lowerName.contains("outside")) {
+                    //add outside background image for replay to current session
+                    currentSession.setOutsideBackgroundURL(fileUrl);
+                } else if (lowerName.contains("basement")) {
+                    //add basement background image for replay to current session
+                    currentSession.setBasementBackgroundURL(fileUrl);
+                } else if (lowerName.endsWith(".json")) {
+                    //add replay json file to current session
+                    currentSession.setReplayJsonURL(fileUrl);
+                }
             }
 
-            // Add the constructed file URL to the current session
-            currentSession.addFileUrl(fileUrl);
             playSessionService.save(currentSession);
-
             logger.info("File uploaded successfully");
             return ResponseEntity.ok("File uploaded successfully: " + dest.getAbsolutePath());
+
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Upload failed with IOException", e);
             return ResponseEntity.status(500).body("Upload failed: " + e.getMessage());
