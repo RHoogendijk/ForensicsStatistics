@@ -22,6 +22,9 @@ public class PlaySession {
     @ElementCollection
     private List<String> fileUrls = new ArrayList<>();
 
+    @ElementCollection
+    private List<String> evidence = new ArrayList<>();
+
     private String basementBackgroundURL;
 
     private String outsideBackgroundURL;
@@ -40,7 +43,11 @@ public class PlaySession {
         fileUrls.add(fileUrl);
     }
 
+    public void addEvidence(String evidence) {this.evidence.add(evidence);}
+
     public void removeFileUrl(String fileUrl) {
         fileUrls.remove(fileUrl);
     }
+
+    public void removeEvidence(String evidence) {this.evidence.remove(evidence);}
 }

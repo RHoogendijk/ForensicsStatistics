@@ -11,4 +11,5 @@ public class SessionContentDTO {
     private String basementBackgroundURL;
     private String jsonFileURL;
     private List<String> photoURLs;
+    private List<String> evidence;
 }

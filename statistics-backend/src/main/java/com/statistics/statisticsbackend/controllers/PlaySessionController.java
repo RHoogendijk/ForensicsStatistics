@@ -11,6 +11,7 @@ import com.statistics.statisticsbackend.security.JWToken;
 import com.statistics.statisticsbackend.services.PlaySessionService;
 import com.statistics.statisticsbackend.services.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -61,6 +62,19 @@ public class PlaySessionController {
         String outsideBackgroundURL = session.getOutsideBackgroundURL();
         String basementBackgroundURL = session.getBasementBackgroundURL();
         String jsonURL = session.getReplayJsonURL();
-        return ResponseEntity.ok(new SessionContentDTO(outsideBackgroundURL, basementBackgroundURL, jsonURL, fileURLs));
+        List<String> evidence = session.getEvidence();
+        return ResponseEntity.ok(new SessionContentDTO(outsideBackgroundURL, basementBackgroundURL, jsonURL, fileURLs, evidence));
+    }
+
+    @PostMapping("/add-evidence")
+    public ResponseEntity<Object> addEvidence(@RequestBody String query, @RequestParam("sessionId") Long sessionId){
+        PlaySession currentSession = playSessionService.findById(sessionId);
+        if (currentSession == null) {
+            return new ResponseEntity<>("Session not found", HttpStatus.NOT_FOUND);
+        }
+        currentSession.addEvidence(query);
+        playSessionService.save(currentSession);
+
+        return ResponseEntity.ok().build();
     }
 }

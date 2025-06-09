@@ -34,16 +34,28 @@ const goReplayView = (files) => {
 <div class="body-container">
   <h2>Session Info</h2>
   <a href="#" @click="goBack">Go back</a>
+  <h3>Replay</h3>
   <button @click="goReplayView(files)">Watch Replay</button>
+  <h3>Evidence</h3>
   <div
-    v-if="files.photoURLs && files.photoURLs.length > 0"
-    v-for="(url, index) in files.photoURLs"
-    :key="index"
-    class="mb-4"
+    v-if="files.evidence && files.evidence.length > 0"
   >
-    <img :src="url" alt="Uploaded" />
+    <p v-for="evidenceString in files.evidence">{{evidenceString}}</p>
   </div>
-  <h3 v-else>This session is empty...</h3>
+  <h4 v-else>No evidence collected yet...</h4>
+  <h3>Photo's</h3>
+  <div class="image-container">
+    <div
+      v-if="files.photoURLs && files.photoURLs.length > 0"
+      v-for="(url, index) in files.photoURLs"
+      :key="index"
+      class="mb-4"
+    >
+      <img :src="url" alt="Uploaded" />
+    </div>
+    <h4 v-else>This session does not have any images...</h4>
+  </div>
+
 </div>
 </template>
 
@@ -55,9 +67,18 @@ a{
   padding: 0 8px;
 }
 img{
-  width: 80%;
+  width: 50vw;
 }
 button {
   margin: 16px;
+}
+.image-container{
+  scroll-behavior: smooth;
+  overflow-y: scroll;
+  min-height: 40px;
+  max-height: 50vh;
+}
+h3{
+  margin-top: 10px;
 }
 </style>

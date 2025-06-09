@@ -16891,5 +16891,14 @@
       "message": "User put down the camera"
     }
   ],
-  "events": []
+  "events": [
+    {
+      "time": 2.0,
+      "type": "taken_photo"
+    },
+    {
+      "time": 3.2,
+      "type": "taken_photo"
+    }
+  ]
 }

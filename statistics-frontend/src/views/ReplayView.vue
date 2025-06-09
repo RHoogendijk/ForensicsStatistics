@@ -6,6 +6,7 @@ import {
   ref, watch,
   watchEffect
 } from 'vue'
+import {useRouter} from "vue-router";
 
 const props = defineProps([
   'id',
@@ -96,8 +97,8 @@ function drawFrame() {
   if (!data.value || positions.value.length === 0) return // ✅ skip if no data
   ctx.clearRect(0, 0, 854, 480)
   drawBackground()
-  drawPlayer()
   drawEvent()
+  drawPlayer()
 }
 
 function drawBackground() {
@@ -321,11 +322,17 @@ watch(visibleLogs, () => {
     }
   })
 })
+
+const router = useRouter()
+const goBack = () => {
+  router.back() // or router.go(-1)
+}
 </script>
 
 <template>
   <div class="body-container">
     <h2>Replay</h2>
+    <a href="#" @click="goBack">Go back</a>
     <canvas ref="cRef"></canvas>
     <div class="slider-container">
       <label for="time">Time: {{ formattedTime }}</label>
@@ -365,6 +372,13 @@ watch(visibleLogs, () => {
 </template>
 
 <style scoped>
+a{
+  width: 100%;
+  color: blue;
+  font-size: 14px;
+  padding: 0 8px;
+}
+
 canvas {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 4px;
