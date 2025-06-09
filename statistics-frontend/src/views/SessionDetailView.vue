@@ -16,14 +16,32 @@ const router = useRouter()
 const goBack = () => {
   router.back() // or router.go(-1)
 }
+
+const goReplayView = (files) => {
+  router.push({
+    name: 'Replay',
+    params: { id: route.params.id },
+    query: {
+      outsideBackgroundURL: files.outsideBackgroundURL,
+      basementBackgroundURL: files.basementBackgroundURL,
+      jsonFileURL: files.jsonFileURL
+    }
+  });
+}
 </script>
 
 <template>
 <div class="body-container">
   <h2>Session Info</h2>
   <a href="#" @click="goBack">Go back</a>
-  <div v-if="files.length > 0" v-for="img in files" :key="img" class="mb-4">
-    <img :src="img" alt="Uploaded"  />
+  <button @click="goReplayView(files)">Watch Replay</button>
+  <div
+    v-if="files.photoURLs && files.photoURLs.length > 0"
+    v-for="(url, index) in files.photoURLs"
+    :key="index"
+    class="mb-4"
+  >
+    <img :src="url" alt="Uploaded" />
   </div>
   <h3 v-else>This session is empty...</h3>
 </div>
@@ -38,5 +56,8 @@ a{
 }
 img{
   width: 80%;
+}
+button {
+  margin: 16px;
 }
 </style>

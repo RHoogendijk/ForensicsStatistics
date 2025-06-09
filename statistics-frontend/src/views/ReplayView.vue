@@ -7,10 +7,18 @@ import {
   watchEffect
 } from 'vue'
 
+const props = defineProps([
+  'id',
+  'outsideBackgroundURL',
+  'basementBackgroundURL',
+  'jsonFileURL'
+])
+
 const data = ref(null)
 
 const time = ref(0)
 const positions = computed(() => data.value?.positions || [])
+const events = computed(() => data.value?.events || [])
 const logs = computed(() => data.value?.logs || [])
 const max = computed(() => data.value?.duration || 0)
 const visibleLogs = computed(() => {
@@ -26,7 +34,6 @@ const isDragging = ref(false)
 const mouseX = ref(0)
 
 const bgImage = new Image()
-bgImage.src = new URL('@/assets/img/replay/bg/stable-bg.png', import.meta.url).href
 
 // Event handlers
 function onMouseDown() {
@@ -75,14 +82,31 @@ function update(now) {
 }
 
 //canvas functions
+function getLatestPositionBeforeCurrentTime() {
+  if (!positions.value.length) return null;
+
+  // Filter positions with time <= current time
+  const filtered = positions.value.filter(pos => pos.time <= time.value);
+
+  // Return the last one, or null if none found
+  return filtered.length ? filtered[filtered.length - 1] : null;
+}
+
 function drawFrame() {
   if (!data.value || positions.value.length === 0) return // ✅ skip if no data
   ctx.clearRect(0, 0, 854, 480)
   drawBackground()
   drawPlayer()
+  drawEvent()
 }
 
 function drawBackground() {
+  const floor = getLatestPositionBeforeCurrentTime().floor
+  if (floor === 0){
+    bgImage.src = props.outsideBackgroundURL;
+  } else {
+    bgImage.src = props.basementBackgroundURL;
+  }
   if (!bgImage.complete) return
   ctx.drawImage(bgImage, 0, 0, 854, 480)
 }
@@ -103,6 +127,59 @@ function drawPlayer() {
   ctx.fill()
 }
 
+function drawEvent(){
+ const lastEvent = getLatestEventBeforeCurrentTime();
+  if (!lastEvent) {
+    return
+  }
+  const eventTime = lastEvent.time
+  const currentTime = time.value
+  const timeSinceEvent = currentTime - eventTime
+
+  if (timeSinceEvent > 2) {
+    return
+  }
+
+  // draw event
+  const pos = getPlayerPosAtCurrentTime(eventTime)
+
+  if (!ctx || !pos) return
+
+  const size = 50; // size of the triangle
+  const angleRad = pos.angle * (Math.PI / 180); // convert angle to radians, rotated so tip points correctly
+
+  // Tip of the triangle (pointing direction)
+  const tipX = pos.x;
+  const tipY = pos.y;
+
+  // Calculate base points (behind the tip)
+  const baseAngle1 = angleRad + Math.PI / 6; // 30 degrees offset
+  const baseAngle2 = angleRad - Math.PI / 6; // 30 degrees offset
+
+  const baseX1 = tipX + size * Math.cos(baseAngle1);
+  const baseY1 = tipY + size * Math.sin(baseAngle1);
+
+  const baseX2 = tipX + size * Math.cos(baseAngle2);
+  const baseY2 = tipY + size * Math.sin(baseAngle2);
+
+  ctx.fillStyle = 'rgba(255,225,163,0.6)';
+  ctx.beginPath();
+  ctx.moveTo(tipX, tipY);
+  ctx.lineTo(baseX1, baseY1);
+  ctx.lineTo(baseX2, baseY2);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function getLatestEventBeforeCurrentTime() {
+  if (!events.value.length) return null;
+
+  // Filter positions with time <= current time
+  const filtered = events.value.filter(e => e.time <= time.value);
+
+  // Return the last one, or null if none found
+  return filtered.length ? filtered[filtered.length - 1] : null;
+}
 
 function getPlayerPosAtCurrentTime(currentTime) {
   const pos = positions.value
@@ -151,7 +228,8 @@ let ctx;
 
 // Lifecycle hooks
 onMounted(async () => {
-  const response = await fetch('src/assets/json/simulation_data_20min.json')
+  bgImage.src = props.outsideBackgroundURL;
+  const response = await fetch(props.jsonFileURL)
   data.value = await response.json()
 
   await nextTick() // wait for DOM refs to be ready

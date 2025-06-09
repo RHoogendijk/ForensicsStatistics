@@ -65,9 +65,15 @@ const  router = createRouter({
       props: true,
     },
     {
-      path: "/replay",
-      name: "Replay",
+      path: '/sessions/:id/replay',
+      name: 'Replay',
       component: ReplayView,
+      props: route => ({
+        id: route.params.id,
+        outsideBackgroundURL: route.query.outsideBackgroundURL,
+        basementBackgroundURL: route.query.basementBackgroundURL,
+        jsonFileURL: route.query.jsonFileURL
+      })
     }
   ]
 })

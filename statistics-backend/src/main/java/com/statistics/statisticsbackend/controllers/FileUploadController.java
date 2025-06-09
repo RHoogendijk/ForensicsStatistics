@@ -95,11 +95,11 @@ public class FileUploadController {
             String fileUrl;
             if (lowerName.endsWith(".jpg") && lowerName.startsWith("photo_")) {
                 //add photo to current session
-                fileUrl = baseUrl + "/api/images/" + userIdStr + "/" + sessionIdStr + "/img/" + originalFileName;
+                fileUrl = baseUrl + "/api/files/" + userIdStr + "/" + sessionIdStr + "/img/" + originalFileName;
                 logger.info("Generated file URL: " + fileUrl);
                 currentSession.addFileUrl(fileUrl);
             } else if (lowerName.startsWith("replay_")){
-                fileUrl = baseUrl + "/api/replay/" + userIdStr + "/" + sessionIdStr + "/" + originalFileName;
+                fileUrl = baseUrl + "/api/files/" + userIdStr + "/" + sessionIdStr + "/replay/" + originalFileName;
                 logger.info("Generated file URL: " + fileUrl);
                 if (lowerName.contains("outside")) {
                     //add outside background image for replay to current session

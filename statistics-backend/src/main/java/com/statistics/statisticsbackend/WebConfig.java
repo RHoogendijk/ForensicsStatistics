@@ -9,7 +9,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         // Configure Spring Boot to serve files from the UPLOAD_DIR
-        registry.addResourceHandler("/api/images/**")
+        registry.addResourceHandler("/api/files/**")
                 .addResourceLocations("file:/app/uploads/");
     }
 }
