@@ -28,6 +28,8 @@ const visibleLogs = computed(() => {
 const isPlaying = ref(false)
 
 let lastFrame = performance.now()
+const playbackSpeed = ref(1);
+const speeds = [0.5, 1, 2, 4,8]
 
 const sliderRef = ref(null)
 const showPointer = ref(false)
@@ -72,7 +74,7 @@ function togglePlay() {
 
 // Main animation loop
 function update(now) {
-  const deltaTime = (now - lastFrame) / 1000
+  const deltaTime = ((now - lastFrame) / 1000) * playbackSpeed.value
   lastFrame = now
 
   if (isPlaying.value && !isDragging.value && time.value < max.value) {
@@ -360,7 +362,24 @@ const goBack = () => {
           </div>
         </transition>
       </div>
-      <button @click="togglePlay">{{ isPlaying ? 'Pause' : 'Play' }}</button>
+    </div>
+    <div>
+      <button @click="togglePlay" :class="{'play': !isPlaying}">
+        <img :src="isPlaying ? '/src/assets/img/replay/pause.png' : '/src/assets/img/replay/play.png'" alt="Play/Pause Icon" width="32px" height="32px" />
+      </button>
+    </div>
+    <div>
+      <button
+        v-for="speed in speeds"
+        :key="speed"
+        @click="playbackSpeed = speed"
+        :class="{
+        'highlighted': playbackSpeed === speed,
+      }"
+        class="speed"
+      >
+        {{ speed }}x
+      </button>
     </div>
     <div class="logs-container">
       <h3>Logs</h3>
@@ -460,6 +479,29 @@ input[type="range"]::-moz-range-track {
   pointer-events: none;
   font-size: 0.75rem;
   padding: 0.2rem;
+}
+button{
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+}
+button.speed{
+  margin-left: 1px;
+  margin-right: 1px;
+  height: 32px;
+  border-radius: 2px;
+  border: 1px solid rgba(200, 200, 203, 0.5);
+  margin-bottom: 8px;
+}
+button.play{
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  padding-left: 12px;
+  padding-top: 10px;
+}
+.highlighted{
+  background-color: #FDBA69;
 }
 
 .pointer-fade-enter-active,
