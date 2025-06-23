@@ -1,5 +1,5 @@
 import {ref} from "vue";
-import {CONFIG} from "@/config.js";
+import {CONFIG} from "../../config.js";
 
 export function useSessions() {
   const files = ref([]);

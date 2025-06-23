@@ -1,6 +1,6 @@
 <script setup>
 import {SessionService} from "@/services/session-service.js";
-import {CONFIG} from "@/config.js";
+import {CONFIG} from "../config.js";
 import {onBeforeMount, onBeforeUnmount, provide, shallowReactive} from "vue";
 import {FetchInterceptor} from "@/services/fetch-interceptor.js";
 import router from "@/router/index.js";
